@@ -1,0 +1,155 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df_sex_unemployment_rates = pd.read_csv('df_sex_unemployment_rates.csv')
+df_unemployment_rates = pd.read_csv('df_unemployment_rates.csv')
+
+df_sex_unemployment_rates['date'] = pd.to_datetime(df_sex_unemployment_rates['date'])
+df_unemployment_rates['date'] = pd.to_datetime(df_unemployment_rates['date'])
+
+sns.set(style="whitegrid")
+
+plt.figure(figsize=(14, 7))
+plt.plot(df_unemployment_rates['date'], df_unemployment_rates['overall_rate'], label='Загальний рівень безробіття')
+plt.title('Загальний рівень безробіття в США з часом')
+plt.xlabel('Дата')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(14, 7))
+plt.plot(df_sex_unemployment_rates['date'], df_sex_unemployment_rates['men_rate'], label='Чоловіки')
+plt.plot(df_sex_unemployment_rates['date'], df_sex_unemployment_rates['women_rate'], label='Жінки')
+plt.title('Рівень безробіття за статтю з часом')
+plt.xlabel('Дата')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(14, 7))
+plt.plot(df_unemployment_rates['date'], df_unemployment_rates['age_16_17_rate'], label='16–17 років')
+plt.plot(df_unemployment_rates['date'], df_unemployment_rates['age_25_54_rate'], label='25–54 роки')
+plt.plot(df_unemployment_rates['date'], df_unemployment_rates['age_55plus_rate'], label='55+ років')
+plt.title('Рівень безробіття для різних вікових груп з часом')
+plt.xlabel('Дата')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend()
+plt.show()
+
+age_groups = ['age_16_17_rate', 'age_16_19_rate', 'age_18_19_rate', 'age_16_24_rate', 
+              'age_20_24_rate', 'age_25_34_rate', 'age_25_54_rate', 'age_35_44_rate', 
+              'age_45_54_rate', 'age_55plus_rate']
+
+plt.figure(figsize=(12, 8))
+sns.boxplot(data=df_unemployment_rates[age_groups])
+plt.title('Розподіл рівня безробіття за віковими групами')
+plt.xlabel('Вікова група')
+plt.ylabel('Рівень безробіття (%)')
+plt.xticks(rotation=45)
+plt.show()
+
+plt.figure(figsize=(12, 8))
+correlation_matrix = df_unemployment_rates[age_groups].corr()
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0)
+plt.title('Кореляція між рівнями безробіття різних вікових груп')
+plt.show()
+
+plt.figure(figsize=(14, 8))
+sns.histplot(df_unemployment_rates['age_25_34_rate'], bins=20, color='skyblue', kde=True, label='25-34 роки')
+sns.histplot(df_unemployment_rates['age_35_44_rate'], bins=20, color='salmon', kde=True, label='35-44 роки')
+sns.histplot(df_unemployment_rates['age_45_54_rate'], bins=20, color='green', kde=True, label='45-54 роки')
+plt.title('Розподіл рівня безробіття для вікових груп')
+plt.xlabel('Рівень безробіття (%)')
+plt.ylabel('Частота')
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(14, 7))
+df_sex_unemployment_rates['overall_rate_smooth'] = df_sex_unemployment_rates['overall_rate'].rolling(window=12).mean()
+plt.plot(df_sex_unemployment_rates['date'], df_sex_unemployment_rates['overall_rate'], label='Загальний рівень безробіття')
+plt.plot(df_sex_unemployment_rates['date'], df_sex_unemployment_rates['overall_rate_smooth'], label='Рухоме середнє (12 місяців)', linestyle='--', color='red')
+plt.title('Загальний рівень безробіття з рухомим середнім')
+plt.xlabel('Дата')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(14, 8))
+plt.stackplot(df_unemployment_rates['date'], 
+              df_unemployment_rates['age_16_17_rate'], 
+              df_unemployment_rates['age_18_19_rate'],
+              df_unemployment_rates['age_20_24_rate'], 
+              df_unemployment_rates['age_25_34_rate'], 
+              df_unemployment_rates['age_35_44_rate'], 
+              df_unemployment_rates['age_45_54_rate'], 
+              df_unemployment_rates['age_55plus_rate'], 
+              labels=['16-17 років', '18-19 років', '20-24 роки', '25-34 роки', '35-44 роки', '45-54 роки', '55+ років'],
+              alpha=0.7)
+plt.title('Розподіл рівня безробіття за віковими групами')
+plt.xlabel('Дата')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend(loc='upper left')
+plt.show()
+
+sns.pairplot(df_unemployment_rates[['age_16_17_rate', 'age_20_24_rate', 'age_25_34_rate', 'age_55plus_rate']], diag_kind='kde')
+plt.suptitle('Парні графіки для рівня безробіття за віковими групами', y=1.02)
+plt.show()
+
+df_sex_unemployment_rates['decade'] = df_sex_unemployment_rates['date'].dt.year // 10 * 10
+decade_avg = df_sex_unemployment_rates.groupby('decade')[['men_rate', 'women_rate']].mean().reset_index()
+
+plt.figure(figsize=(12, 7))
+sns.barplot(x='decade', y='men_rate', data=decade_avg, color='blue', label='Чоловіки')
+sns.barplot(x='decade', y='women_rate', data=decade_avg, color='orange', label='Жінки', alpha=0.7)
+plt.title('Середній рівень безробіття за десятиліттями')
+plt.xlabel('Десятиліття')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(14, 7))
+plt.plot(df_unemployment_rates['date'], df_unemployment_rates['overall_rate'], label='Загальний рівень безробіття')
+plt.plot(df_unemployment_rates['date'], df_unemployment_rates['age_16_24_rate'], label='Безробіття 16-24 років')
+plt.title('Порівняння загального рівня безробіття з рівнем безробіття молоді')
+plt.xlabel('Дата')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend()
+plt.show()
+
+plt.figure(figsize=(14, 7))
+df_sex_unemployment_rates['men_women_ratio'] = df_sex_unemployment_rates['men_rate'] / df_sex_unemployment_rates['women_rate']
+plt.plot(df_sex_unemployment_rates['date'], df_sex_unemployment_rates['men_women_ratio'], label='Співвідношення Чоловіки/Жінки')
+plt.title('Співвідношення рівня безробіття чоловіків до жінок з часом')
+plt.xlabel('Дата')
+plt.ylabel('Співвідношення')
+plt.axhline(1, color='gray', linestyle='--')  # лінія співвідношення 1
+plt.legend()
+plt.show()
+
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+# Виконуємо сезонну декомпозицію для загального рівня безробіття
+df_unemployment_rates.set_index('date', inplace=True)
+decomposition = seasonal_decompose(df_unemployment_rates['overall_rate'], model='additive', period=12)
+
+# Побудова графіків компонентів декомпозиції
+decomposition.plot()
+plt.suptitle('Сезонна декомпозиція загального рівня безробіття')
+plt.show()
+
+
+# Виділення піків у загальному рівні безробіття
+threshold = df_unemployment_rates['overall_rate'].quantile(0.95)  # Вибір 95-го перцентиля
+peaks = df_unemployment_rates[df_unemployment_rates['overall_rate'] > threshold]
+
+plt.figure(figsize=(14, 7))
+plt.plot(df_unemployment_rates.index, df_unemployment_rates['overall_rate'], label='Загальний рівень безробіття')
+plt.scatter(peaks.index, peaks['overall_rate'], color='red', label='Піки безробіття', zorder=5)
+plt.title('Виокремлення піків рівня безробіття')
+plt.xlabel('Дата')
+plt.ylabel('Рівень безробіття (%)')
+plt.legend()
+plt.show()
+
+
